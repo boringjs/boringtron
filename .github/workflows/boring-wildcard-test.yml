@@ -1,0 +1,12 @@
+name: wildcard-test
+on: workflow_dispatch            # manual “Run workflow” button
+
+jobs:
+  run-echo:
+    runs-on: ubuntu-latest
+    steps:
+      # this step proves the allow-list entry "boringtron/*" works
+      - name: Echo a message
+        uses: boringtron/echo-action@v1   # any repo under the “boringtron” owner
+        with:
+          message: "Wildcard is active ✅"
