@@ -1,0 +1,35 @@
+name: build-macos-arm64-boringtron
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [boring-current]
+
+jobs:
+  macos-arm64:
+    runs-on: macos-14-xlarge
+    timeout-minutes: 240
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          brew install python@3.11 ninja cmake pkg-config git-lfs
+          git lfs install
+      - name: Sync Chromium deps
+        run: |
+          ./script/bootstrap.py -v     # штатный скрипт Electron
+
+      - name: Build arm64
+        run: |
+          ./script/build.py -c D --mac_arm64
+
+      - name: Package dist
+        run: |
+          mkdir -p dist
+          cp -R out/D/* dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: boringtron-macos-arm64
+          path: dist
