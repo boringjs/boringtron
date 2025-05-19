@@ -1,12 +1,9 @@
-name: wildcard-test
-on: workflow_dispatch            # manual “Run workflow” button
+# .github/workflows/boring-test.yml
+name: allow‑list‑probe
+on: push          # срабатывает на любой пуш
 
 jobs:
-  run-echo:
+  ping:
     runs-on: ubuntu-latest
     steps:
-      # this step proves the allow-list entry "boringtron/*" works
-      - name: Echo a message
-        uses: boringtron/echo-action@v1   # any repo under the “boringtron” owner
-        with:
-          message: "Wildcard is active ✅"
+      - run: echo "Workflow запустился 🎉"
