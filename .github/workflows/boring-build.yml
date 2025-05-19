@@ -3,33 +3,40 @@ name: build-macos-arm64-boringtron
 on:
   workflow_dispatch:
   push:
-    branches: [boring-current]
+    branches: [ boring-current ]
 
 jobs:
-  macos-arm64:
-    runs-on: macos-14
-    timeout-minutes: 240
-
+  checkout-macos:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/electron/build:cf814a4d2501e8e843caea071a6b70a48e78b855
+      options: --user root
+    env:
+      GCLIENT_EXTRA_ARGS: '--custom-var=checkout_mac=True --custom-var=host_os=mac'
+    outputs:
+      build-image-sha: cf814a4d2501e8e843caea071a6b70a48e78b855
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install deps
-        run: |
-          brew install python@3.11 ninja cmake pkg-config git-lfs
-          git lfs install
-      - name: Sync Chromium deps
-        run: |
-          ./script/bootstrap.py -v     # штатный скрипт Electron
-
-      - name: Build arm64
-        run: |
-          ./script/build.py -c D --mac_arm64
-
-      - name: Package dist
-        run: |
-          mkdir -p dist
-          cp -R out/D/* dist/
-      - uses: actions/upload-artifact@v4
         with:
-          name: boringtron-macos-arm64
-          path: dist
+          path: src/electron
+          fetch-depth: 0
+      - name: Checkout & Sync deps
+        uses: ./src/electron/.github/actions/checkout
+
+  macos-arm64:
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    needs: checkout-macos
+    uses: ./.github/workflows/pipeline-electron-build-and-test.yml
+    with:
+      build-runs-on: macos-14
+      test-runs-on:  macos-14
+      target-platform: macos
+      target-arch: arm64
+      is-release: false
+      gn-build-type: testing
+      generate-symbols: false
+      upload-to-storage: '0'
+    secrets: inherit
